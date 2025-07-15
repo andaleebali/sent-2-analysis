@@ -4,7 +4,6 @@ from pathlib import Path
 import logging
 import numpy as np
 import argparse
-import glob
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -46,6 +45,25 @@ def plot_ndvi(ndvi):
     plt.title('NDVI from Sentinel-2')
     plt.show()
 
+def write_geotiff(src_path, ndvi):
+
+    make_directory=Path('Outputs')
+    make_directory.mkdir(parents=True, exist_ok=True)
+
+    with rasterio.open(src_path) as file:
+        # Write to TIFF
+        kwargs = file.meta
+        kwargs.update(
+        dtype=rasterio.float32,
+        count=1,
+        nodata = np.nan,
+        driver='GTiff')
+
+    with rasterio.open(Path('Outputs/ndvi.tif'),'w',**kwargs) as dst:
+        dst.write(ndvi.astype(rasterio.float32), 1)
+        logger.info("GeoTIFF written to Outputs/ndvi.tif")
+
+
 def main(folder):
 
     path = Path(folder)
@@ -54,7 +72,6 @@ def main(folder):
 
     logging.info("Reading red band %s.", redpath)
     red_band = read_file(redpath[0])
-
     logging.info("Reading NIR band %s.",    nirpath)
     nir_band = read_file(nirpath[0])
 
@@ -63,6 +80,10 @@ def main(folder):
     logging.info("NDVI calculation complete.")
 
     plot_ndvi(ndvi)
+
+    write_geotiff(redpath[0], ndvi)
+
+    logging.info("Geotiff created.")
 
 if __name__=="__main__":
     cmdline = cmdLine()
