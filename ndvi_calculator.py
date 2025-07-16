@@ -69,7 +69,7 @@ def cmd_arguments():
 
 def read_file(filepath):
     """
-    Reads a single band from  a raster file.
+    Reads a single band from a raster file and returns as an array.
 
     Parameters:
         filepath (string or Path): Full path to raster file.
@@ -103,18 +103,27 @@ def calculate_ndvi(red, nir):
     return ndvi
 
 def plot_ndvi(ndvi):
-    plt.imshow(ndvi, cmap='BuGn')
+    # Displays as a red to green colour map
+    plt.imshow(ndvi, cmap='RdYlGn')
     plt.colorbar(label='NDVI')
     plt.title('NDVI from Sentinel-2')
     plt.show()
 
 def write_geotiff(src_path, ndvi, output):
+    """
+    Creates geotiff of the ndvi array
 
+    Parameters:
+        src_path(string/Path): path to a band to extract metadata
+        ndvi(array): results from normalised difference calculation
+        output(string): location to save output
+    """
+    # Checks output folder exists 
     output_path=Path(output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # Copy metadata from source image
     with rasterio.open(src_path) as file:
-        # Write to TIFF
         kwargs = file.meta
         kwargs.update(
         dtype=rasterio.float32,
@@ -127,7 +136,9 @@ def write_geotiff(src_path, ndvi, output):
         logger.info("GeoTIFF written to %s", output_path)
 
 def get_ndvi(redpath, nirpath):
-
+    """
+    
+    """
     logging.info("Reading red band %s.", redpath)
     red_band = read_file(redpath)
     logging.info("Reading NIR band %s.",    nirpath)
