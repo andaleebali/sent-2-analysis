@@ -1,3 +1,7 @@
+""" Compute NDVI from a Sentinel-2 Image
+Input: JP2 bands (B04 = red, B08 = NIR)
+Output: NDVI GeoTIFF and optional plot """
+
 import rasterio
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -9,26 +13,85 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def cmdLine():
-    p = argparse.ArgumentParser(
+def cmd_arguments():
+    """
+    Parsers for the command line
+    
+    Returns:
+        cmd - arguments
+
+    """
+    parser = argparse.ArgumentParser(
         description="Run to calculate NDVI from Sentinel-2 Image"
         )
     
-    p.add_argument(
+    parser.add_argument(
         "--folder",
         dest="folder",
         type=str,
         default="Image\S2B_MSIL2A_20250531T220619_N0511_R086_T60HWC_20250531T233234.SAFE\S2B_MSIL2A_20250531T220619_N0511_R086_T60HWC_20250531T233234.SAFE",
-        help="Path to folder and name."
+        help="Path to folder."
     )
-    cmd = p.parse_args()
+
+    parser.add_argument(
+        "--red-band",
+        dest="redband",
+        type=str,
+        default="B04",
+        help="name of red band"
+    )
+
+    parser.add_argument(
+        "--nir-band",
+        dest="nirband",
+        type=str,
+        default="B08",
+        help="name of NIR band"
+    )
+
+    parser.add_argument(
+        "--resolution",
+        dest="resolution",
+        type=str,
+        default="10m",
+        help="resolution"
+    )
+
+    parser.add_argument(
+        "--output",
+        dest="output",
+        default="Outputs/ndvi.tif",
+        help="file name for outputs"
+    )
+
+    cmd = parser.parse_args()
     return cmd
 
 def read_file(filepath):
+    """
+    Reads a single band from  a raster file.
+
+    Parameters:
+        filepath (string or Path): Full path to raster file.
+
+    Returns:
+        src: np.ndarray: 2D array of pixel values
+    """
     with rasterio.open(filepath) as src:
         return src.read(1)
 
 def calculate_ndvi(red, nir):
+    """
+    Computes NDVI from red and NIR bands.
+
+    Parameters:
+        red (ndarray): red band array
+        nir (ndarray): NIR band array
+
+    Returns:
+        ndvi (ndarray): NDVI calculation result
+
+    """
     nir = nir.astype(float)
     red = red.astype(float)
 
@@ -45,10 +108,10 @@ def plot_ndvi(ndvi):
     plt.title('NDVI from Sentinel-2')
     plt.show()
 
-def write_geotiff(src_path, ndvi):
+def write_geotiff(src_path, ndvi, output):
 
-    make_directory=Path('Outputs')
-    make_directory.mkdir(parents=True, exist_ok=True)
+    output_path=Path(output)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
     with rasterio.open(src_path) as file:
         # Write to TIFF
@@ -59,33 +122,46 @@ def write_geotiff(src_path, ndvi):
         nodata = np.nan,
         driver='GTiff')
 
-    with rasterio.open(Path('Outputs/ndvi.tif'),'w',**kwargs) as dst:
+    with rasterio.open(output_path,'w',**kwargs) as dst:
         dst.write(ndvi.astype(rasterio.float32), 1)
-        logger.info("GeoTIFF written to Outputs/ndvi.tif")
+        logger.info("GeoTIFF written to %s", output_path)
 
-
-def main(folder):
-
-    path = Path(folder)
-    redpath = list(path.rglob('R10m/*B04_10m.jp2'))
-    nirpath = list(path.rglob('R10m/*B08_10m.jp2'))
+def get_ndvi(redpath, nirpath):
 
     logging.info("Reading red band %s.", redpath)
-    red_band = read_file(redpath[0])
+    red_band = read_file(redpath)
     logging.info("Reading NIR band %s.",    nirpath)
-    nir_band = read_file(nirpath[0])
+    nir_band = read_file(nirpath)
 
     ndvi = calculate_ndvi(red_band, nir_band)
 
     logging.info("NDVI calculation complete.")
 
+    return ndvi
+
+def main(folder, redband, nirband, resolution, output):
+    """
+    
+    """
+    path = Path(folder)
+    
+    red_file = f'*{redband}_{resolution}.jp2'
+    nir_file = f'*{nirband}_{resolution}.jp2'
+
+    redpath = list(path.rglob(red_file))
+    nirpath = list(path.rglob(nir_file))
+
+    ndvi = get_ndvi(redpath[0], nirpath[0])
+
     plot_ndvi(ndvi)
 
-    write_geotiff(redpath[0], ndvi)
-
-    logging.info("Geotiff created.")
+    write_geotiff(redpath[0], ndvi, output)
 
 if __name__=="__main__":
-    cmdline = cmdLine()
+    cmdline = cmd_arguments()
     folderpath = cmdline.folder
-    main(folderpath)
+    redband = cmdline.redband
+    nirband = cmdline.nirband
+    resolution = cmdline.resolution
+    output = cmdline.output
+    main(folderpath, redband, nirband, resolution, output)
