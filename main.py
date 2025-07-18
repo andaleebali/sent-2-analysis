@@ -10,9 +10,10 @@ Outputs:
 import logging
 import argparse
 from pathlib import Path
-import matplotlib.pyplot as plt
 import numpy as np
 import rasterio
+import calculator
+import plotting
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -80,35 +81,8 @@ def read_file(filepath):
     with rasterio.open(filepath) as src:
         return src.read(1)
 
-def calculate_normalised_difference(band_a, band_b):
-    """
-    Computes a Normalised Difference Index (NDI) from two input bands.
 
-    Parameters:
-        band_a (ndarray): First input band (e.g., red)
-        band_b (ndarray): Second input band (e.g., NIR)
 
-    Returns:
-        ndi (ndarray): Array containing normalised difference values
-    """
-    # Convert to float for safe division
-    band_a = band_a.astype(float)
-    band_b = band_b.astype(float)
-
-    # Calculate denominator and handle divide-by-zero
-    denominator = band_b + band_a
-    with np.errstate(divide='ignore', invalid='ignore'):
-        ndi = (band_b - band_a) / denominator
-        ndi[denominator == 0] = np.nan
-
-    return ndi
-
-def plot_nd(nd):
-    # Displays as a red to green colour map
-    plt.imshow(nd, cmap='RdYlGn')
-    plt.colorbar(label='Normalised Difference Index')
-    plt.title('Normalised Difference Index from Sentinel-2')
-    plt.show()
 
 def write_geotiff(src_path, ndi_array, output):
     """
@@ -152,7 +126,7 @@ def get_normalised_difference(a_path, b_path):
     logging.info("Reading Band B: %s",    b_path)
     b_band = read_file(b_path)
 
-    nd = calculate_normalised_difference(a_band, b_band)
+    nd = calculator.normalised_difference(a_band, b_band)
 
     logging.info("NDI calculation complete.")
 
@@ -179,7 +153,7 @@ def main(folder, band_a_name, band_b_name, resolution, output):
 
     ndi = get_normalised_difference(path_a[0], path_b[0])
 
-    plot_nd(ndi)
+    plotting.plot_nd(ndi)
 
     write_geotiff(path_a[0], ndi, output)
 
