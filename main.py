@@ -8,65 +8,15 @@ Outputs:
 """
 
 import logging
-import argparse
 from pathlib import Path
 import numpy as np
 import rasterio
+import cli
 import calculator
 import plotting
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-def cmd_arguments():
-    """
-    Parsers for the command line
-    
-    Returns:
-        cmd: arguments
-
-    """
-    parser = argparse.ArgumentParser(
-        description="Run to calculate Normalised Difference Index from Sentinel-2 Image"
-        )
-    parser.add_argument(
-        "--folder",
-        dest="folder",
-        type=str,
-        default="Image\S2B_MSIL2A_20250531T220619_N0511_R086_T60HWC_20250531T233234.SAFE\S2B_MSIL2A_20250531T220619_N0511_R086_T60HWC_20250531T233234.SAFE",
-        help="Path to folder."
-    )
-    parser.add_argument(
-        "--band-a",
-        dest="band_a",
-        type=str,
-        default="B04",
-        help="name of first band in normalised difference calculation"
-    )
-    parser.add_argument(
-        "--band-b",
-        dest="band_b",
-        type=str,
-        default="B08",
-        help="name of second band in normalised difference calculation"
-    )
-    parser.add_argument(
-        "--resolution",
-        dest="resolution",
-        type=str,
-        default="10m",
-        help="resolution"
-    )
-    parser.add_argument(
-        "--output",
-        dest="output",
-        default="Outputs/ndi.tif",
-        help="file name for outputs"
-    )
-
-    cmd = parser.parse_args()
-    return cmd
 
 def read_file(filepath):
     """
@@ -158,7 +108,7 @@ def main(folder, band_a_name, band_b_name, resolution, output):
     write_geotiff(path_a[0], ndi, output)
 
 if __name__=="__main__":
-    cmdline = cmd_arguments()
+    cmdline = cli.cmd_arguments()
     folderpath = cmdline.folder
     band_a = cmdline.band_a
     band_b = cmdline.band_b
