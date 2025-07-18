@@ -1,10 +1,10 @@
 """
-Compute NDVI from a Sentinel-2 Image
+Computes Normalised Difference Index from a Sentinel-2 Image
 Inputs:
     - JP2 bands (e.g. B04 = red, B08 = NIR)
 Outputs:
-    - NDVI as GeoTIFF
-    - Optional NDVI plot
+    - NDI as GeoTIFF
+    - Optional NDI plot
 """
 
 import logging
@@ -27,7 +27,7 @@ def cmd_arguments():
 
     """
     parser = argparse.ArgumentParser(
-        description="Run to calculate NDVI from Sentinel-2 Image"
+        description="Run to calculate Normalised Difference Index from Sentinel-2 Image"
         )
     parser.add_argument(
         "--folder",
@@ -37,18 +37,18 @@ def cmd_arguments():
         help="Path to folder."
     )
     parser.add_argument(
-        "--red-band",
-        dest="redband",
+        "--band-a",
+        dest="band_a",
         type=str,
         default="B04",
-        help="name of red band"
+        help="name of first band in normalised difference calculation"
     )
     parser.add_argument(
-        "--nir-band",
-        dest="nirband",
+        "--band-b",
+        dest="band_b",
         type=str,
         default="B08",
-        help="name of NIR band"
+        help="name of second band in normalised difference calculation"
     )
     parser.add_argument(
         "--resolution",
@@ -60,7 +60,7 @@ def cmd_arguments():
     parser.add_argument(
         "--output",
         dest="output",
-        default="Outputs/ndvi.tif",
+        default="Outputs/ndi.tif",
         help="file name for outputs"
     )
 
@@ -80,44 +80,43 @@ def read_file(filepath):
     with rasterio.open(filepath) as src:
         return src.read(1)
 
-def calculate_ndvi(red, nir):
+def calculate_normalised_difference(band_a, band_b):
     """
-    Computes NDVI from red and NIR bands.
+    Computes a Normalised Difference Index (NDI) from two input bands.
 
     Parameters:
-        red (ndarray): red band array
-        nir (ndarray): NIR band array
+        band_a (ndarray): First input band (e.g., red)
+        band_b (ndarray): Second input band (e.g., NIR)
 
     Returns:
-        ndvi (ndarray): NDVI calculation result
-
+        ndi (ndarray): Array containing normalised difference values
     """
-    # sets values to floats for correct division
-    nir = nir.astype(float)
-    red = red.astype(float)
+    # Convert to float for safe division
+    band_a = band_a.astype(float)
+    band_b = band_b.astype(float)
 
-    # calculates ndvi unless denominator is 0
-    denominator = nir + red
+    # Calculate denominator and handle divide-by-zero
+    denominator = band_b + band_a
     with np.errstate(divide='ignore', invalid='ignore'):
-        ndvi = (nir - red)/denominator
-        #Sets value to NaN when denominator is 0
-        ndvi[denominator==0] = np.nan
-    return ndvi
+        ndi = (band_b - band_a) / denominator
+        ndi[denominator == 0] = np.nan
 
-def plot_ndvi(ndvi):
+    return ndi
+
+def plot_nd(nd):
     # Displays as a red to green colour map
-    plt.imshow(ndvi, cmap='RdYlGn')
-    plt.colorbar(label='NDVI')
-    plt.title('NDVI from Sentinel-2')
+    plt.imshow(nd, cmap='RdYlGn')
+    plt.colorbar(label='Normalised Difference Index')
+    plt.title('Normalised Difference Index from Sentinel-2')
     plt.show()
 
-def write_geotiff(src_path, ndvi, output):
+def write_geotiff(src_path, ndi_array, output):
     """
-    Creates geotiff of the ndvi array
+    Creates geotiff of the ndi array
 
     Parameters:
         src_path(string or Path): path to a band to extract metadata
-        ndvi(array): results from normalised difference calculation
+        ndi_array(array): results from normalised difference calculation
         output(string): location to save output
     """
     # Checks output folder exists 
@@ -134,61 +133,61 @@ def write_geotiff(src_path, ndvi, output):
         driver='GTiff')
 
     with rasterio.open(output_path,'w',**kwargs) as dst:
-        dst.write(ndvi.astype(rasterio.float32), 1)
+        dst.write(ndi_array.astype(rasterio.float32), 1)
         logger.info("GeoTIFF written to %s", output_path)
 
-def get_ndvi(redpath, nirpath):
+def get_normalised_difference(a_path, b_path):
     """
-    Reads red and NIR band files and computes the NDVI.
+    Reads red and NIR band files and computes the NDI.
 
     Parameters:
-        redpath (str or Path): Path to red band file
-        nirpath (str or Path): Path to NIR band file
+        a_path (str or Path): Path to first band file
+        b_path (str or Path): Path to second band file
 
     Returns:
-        ndvi (ndarray): NDVI array
+        ndi (ndarray): NDI array
     """
-    logging.info("Reading red band %s.", redpath)
-    red_band = read_file(redpath)
-    logging.info("Reading NIR band %s.",    nirpath)
-    nir_band = read_file(nirpath)
+    logging.info("Reading Band A: %s", a_path)
+    a_band = read_file(a_path)
+    logging.info("Reading Band B: %s",    b_path)
+    b_band = read_file(b_path)
 
-    ndvi = calculate_ndvi(red_band, nir_band)
+    nd = calculate_normalised_difference(a_band, b_band)
 
-    logging.info("NDVI calculation complete.")
+    logging.info("NDI calculation complete.")
 
-    return ndvi
+    return nd
 
-def main(folder, redband, nirband, resolution, output):
+def main(folder, band_a_name, band_b_name, resolution, output):
     """
-    Main function initiates functions to locate bands, compute NDVI, display and save output.
+    Main function initiates functions to locate bands, compute NDI, display and save output.
 
     Parameters:
         folder (str): Root folder of Sentinel-2 data
-        redband (str): Red band identifier (e.g. B04)
-        nirband (str): NIR band identifier (e.g. B08)
+        band_a_name (str): Band A identifier (e.g. B04)
+        band_b_name (str): Band B identifier (e.g. B08)
         resolution (str): Spatial resolution (e.g. 10m)
-        output (str): Output file path for NDVI GeoTIFF
+        output (str): Output file path for NDI GeoTIFF
     """
     path = Path(folder)
     # Set up for Sentinel-2 file naming convention
-    red_file = f'*{redband}_{resolution}.jp2'
-    nir_file = f'*{nirband}_{resolution}.jp2'
+    a_file = f'*{band_a_name}_{resolution}.jp2'
+    b_file = f'*{band_b_name}_{resolution}.jp2'
     # Search recursively for red and NIR band files
-    redpath = list(path.rglob(red_file))
-    nirpath = list(path.rglob(nir_file))
+    path_a = list(path.rglob(a_file))
+    path_b = list(path.rglob(b_file))
 
-    ndvi = get_ndvi(redpath[0], nirpath[0])
+    ndi = get_normalised_difference(path_a[0], path_b[0])
 
-    plot_ndvi(ndvi)
+    plot_nd(ndi)
 
-    write_geotiff(redpath[0], ndvi, output)
+    write_geotiff(path_a[0], ndi, output)
 
 if __name__=="__main__":
     cmdline = cmd_arguments()
     folderpath = cmdline.folder
-    redband = cmdline.redband
-    nirband = cmdline.nirband
+    band_a = cmdline.band_a
+    band_b = cmdline.band_b
     resolution = cmdline.resolution
     output = cmdline.output
-    main(folderpath, redband, nirband, resolution, output)
+    main(folderpath, band_a, band_b, resolution, output)
