@@ -9,8 +9,6 @@ Outputs:
 
 import logging
 from pathlib import Path
-import numpy as np
-import rasterio
 import cli
 import calculator
 import plotting
