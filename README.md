@@ -9,6 +9,11 @@
  ## Usage
 
  ## Roadmap
+ [] Add optional geotiff and visualisation output
+ [] Add support for batch processing
+ [] Add support for cloud masking
+ [] Add progress bar for large files
+ [] Add test suite with pytest
 
  ## Licence
 
