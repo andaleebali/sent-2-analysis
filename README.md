@@ -1,6 +1,6 @@
 # 🛰️ Sentinel-2 Normalised Difference Calculator
 
- A Python module for calculating **Normalized Difference Indices** (NDI) — like NDVI, NDWI, NBR — from Sentinel-2 `.jp2` band files. Outputs a GeoTIFF and plot.
+ This tool is for calculating **Normalized Difference Indices** (NDI) — like NDVI, NDWI, NBR — from Sentinel-2 `.jp2` band files. Useful for environmental monitoring and analysis.
 
  ## Features
  - Reads Sentinel-2 .jp2 band data
@@ -19,12 +19,14 @@
  ## Usage
  
  Example
+ '''bash
  python main.py \
   --folder "Image/S2B_20250531T..." \
   --band-a B04 \
   --band-b B08 \
   --resolution 10m \
   --output Outputs/ndi.tif
+  '''
 
  ## Roadmap
  [ ] Add optional geotiff and visualisation output<br>
@@ -34,4 +36,5 @@
  [ ] Add test suite with pytest<br>
 
  ## Licence
+ [MIT](https://choosealicense.com/licenses/mit/)
 
