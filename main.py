@@ -39,7 +39,7 @@ def get_normalised_difference(a_path, b_path):
 
     return nd
 
-def main(folder, band_a_name, band_b_name, resolution, output):
+def main(folder, band_a_name, band_b_name, resolution, visualise, output):
     """
     Main function initiates functions to locate bands, compute NDI, display and save output.
 
@@ -60,7 +60,8 @@ def main(folder, band_a_name, band_b_name, resolution, output):
 
     ndi = get_normalised_difference(path_a[0], path_b[0])
 
-    plotting.plot_nd(ndi)
+    if visualise == True:
+        plotting.plot_nd(ndi)
 
     utils.write_geotiff(path_a[0], ndi, output)
 
@@ -70,5 +71,6 @@ if __name__=="__main__":
     band_a = cmdline.band_a
     band_b = cmdline.band_b
     resolution = cmdline.resolution
+    visualise = cmdline.visualise
     output = cmdline.output
-    main(folderpath, band_a, band_b, resolution, output)
+    main(folderpath, band_a, band_b, resolution, visualise, output)

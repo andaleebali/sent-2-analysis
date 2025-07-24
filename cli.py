@@ -37,8 +37,15 @@ def cmd_arguments():
         dest="resolution",
         type=str,
         default="10m",
-        help="resolution"
+        help="set resolution"
     )
+
+    parser.add_argument(
+        "--visualise",
+        action="store_true",
+        help="show result once calculated"
+    )
+
     parser.add_argument(
         "--output",
         dest="output",
