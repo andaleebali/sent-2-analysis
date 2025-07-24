@@ -19,14 +19,14 @@
  ## Usage
  
  Example
- '''bash
+ ```bash
  python main.py \
   --folder "Image/S2B_20250531T..." \
   --band-a B04 \
   --band-b B08 \
   --resolution 10m \
   --output Outputs/ndi.tif
-  '''
+  ```
 
  ## Roadmap
  [ ] Add optional geotiff and visualisation output<br>
