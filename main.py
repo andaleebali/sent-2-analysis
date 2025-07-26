@@ -13,6 +13,7 @@ import cli
 import calculator
 import plotting
 import utils
+import os, zipfile
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -50,20 +51,36 @@ def main(folder, band_a_name, band_b_name, resolution, visualise, output):
         resolution (str): Spatial resolution (e.g. 10m)
         output (str): Output file path for NDI GeoTIFF
     """
-    path = Path(folder)
+    extracted_path=Path('Extracted')
+    extracted_path.parent.mkdir(parents=True, exist_ok=True)
+
+    for file in os.listdir(folder):
+        if file.endswith(".zip"):
+            filepath = Path(folder) / file
+            zip = zipfile.ZipFile(filepath)
+            zip.extractall(extracted_path)
+
     # Set up for Sentinel-2 file naming convention
     a_file = f'*{band_a_name}_{resolution}.jp2'
     b_file = f'*{band_b_name}_{resolution}.jp2'
-    # Search recursively for red and NIR band files
-    path_a = list(path.rglob(a_file))
-    path_b = list(path.rglob(b_file))
 
-    ndi = get_normalised_difference(path_a[0], path_b[0])
+    for safe_file in os.listdir(extracted_path):
+        if safe_file.endswith(".SAFE"):
+            safe_file = Path(extracted_path) / safe_file
+            # Search recursively for red and NIR band files
+            path_a = list(safe_file.rglob(a_file))
+            path_b = list(safe_file.rglob(b_file))
 
-    if visualise == True:
-        plotting.plot_nd(ndi)
+            ndi = get_normalised_difference(path_a[0], path_b[0])
 
-    utils.write_geotiff(path_a[0], ndi, output)
+            if visualise == True:
+                plotting.plot_nd(ndi)
+
+            
+            scene_name = safe_file.stem
+
+            output_path = Path(output) / f"{scene_name}_{band_a_name}_{band_b_name}.tif"
+            utils.write_geotiff(path_a[0], ndi, output_path)
 
 if __name__=="__main__":
     cmdline = cli.cmd_arguments()

@@ -15,7 +15,7 @@ def cmd_arguments():
         "--folder",
         dest="folder",
         type=str,
-        default="Image\S2B_MSIL2A_20250531T220619_N0511_R086_T60HWC_20250531T233234.SAFE\S2B_MSIL2A_20250531T220619_N0511_R086_T60HWC_20250531T233234.SAFE",
+        default="Inputs",
         help="Path to folder."
     )
     parser.add_argument(
@@ -49,8 +49,8 @@ def cmd_arguments():
     parser.add_argument(
         "--output",
         dest="output",
-        default="Outputs/ndi.tif",
-        help="file name for outputs"
+        default="Outputs",
+        help="folder name for outputs"
     )
 
     cmd = parser.parse_args()
