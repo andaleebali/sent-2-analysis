@@ -1,4 +1,5 @@
 """
+main.py
 Computes Normalised Difference Index from a Sentinel-2 Image
 Inputs:
     - JP2 bands (e.g. B04 = red, B08 = NIR)
@@ -73,10 +74,11 @@ def main(folder, band_a_name, band_b_name, resolution, visualise, output):
 
             ndi = get_normalised_difference(path_a[0], path_b[0])
 
-            if visualise == True:
+            # visualise the normalised difference
+            if  visualise or __name__ == "__main__":
                 plotting.plot_nd(ndi)
 
-            
+            # save to tif
             scene_name = safe_file.stem
 
             output_path = Path(output) / f"{scene_name}_{band_a_name}_{band_b_name}.tif"
