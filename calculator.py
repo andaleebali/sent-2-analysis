@@ -22,3 +22,24 @@ def normalised_difference(band_a, band_b):
         ndi[denominator == 0] = np.nan
 
     return ndi
+
+def summary_stats(ndi_array):
+    """
+    Compute basic statistics for a Normalised Difference Index array.
+
+    Parameters:
+        ndi_array (ndarray): 2D array of NDI values
+
+    Returns:
+        dict: summary stats
+    """
+
+    stats = {
+        "mean": np.nanmean(ndi_array), 
+        "min": np.nanmin(ndi_array),
+        "max": np.nanmax(ndi_array),
+        "std": np.nanstd(ndi_array),
+        "median": np.nanmedian(ndi_array) 
+    }
+
+    return stats

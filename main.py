@@ -74,9 +74,19 @@ def main(folder, band_a_name, band_b_name, resolution, visualise, output):
 
             ndi = get_normalised_difference(path_a[0], path_b[0])
 
+            stats = calculator.summary_stats(ndi)
+
+            logger.info("Summary statistics for this scene:")
+            logger.info("Mean: %.4f", stats["mean"])
+            logger.info("Min: %.4f", stats["min"])
+            logger.info("Max: %.4f", stats["max"])
+            logger.info("Std: %.4f", stats["std"])
+            logger.info("Median: %.4f", stats["median"])
+
             # visualise the normalised difference
             if  visualise or __name__ == "__main__":
                 plotting.plot_nd(ndi)
+                plotting.plot_histogram(ndi)
 
             # save to tif
             scene_name = safe_file.stem
