@@ -18,7 +18,7 @@ def cmd_arguments():
         dest="folder",
         type=str,
         default="Inputs",
-        help="Path to folder."
+        help="Path to folder containing one or more Sentinel-2 .zip or .SAFE scenes."
     )
     parser.add_argument(
         "--band-a",

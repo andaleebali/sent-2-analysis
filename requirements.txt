@@ -1,3 +1,5 @@
-rasterio
-matplotlib
-numpy
+rasterio==1.3.10
+pyproj==3.6.1
+numpy>=1.23.0
+matplotlib>=3.7.0
+argparse>=1.4.0
