@@ -1,3 +1,5 @@
+# Command line arguments
+
 import argparse
 
 def cmd_arguments():

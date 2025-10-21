@@ -28,7 +28,7 @@ def write_geotiff(src_path, ndi_array, output):
         ndi_array(array): results from normalised difference calculation
         output(string): location to save output
     """
-    # Checks output folder exists 
+    # Checks output folder exists and makes directory if not
     output_path=Path(output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
