@@ -31,3 +31,18 @@ def test_normalised_difference_zero():
             assert np.isnan(r)
         else:
             assert pytest.approx(r, 0.001) == e
+
+def test_summary_stats():
+    test_a = np.array([1, 2, 3, 4])
+
+    result = calculator.summary_stats(test_a)
+
+    expected = {
+        "mean": 2.5, 
+        "min": 1,
+        "max": 4,
+        "std": 1.118033988749895,
+        "median": 2.5
+    }
+
+    assert pytest.approx(expected) == result
